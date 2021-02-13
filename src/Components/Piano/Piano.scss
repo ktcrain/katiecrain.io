@@ -1,0 +1,144 @@
+.Piano-Container {
+  position: absolute;
+  opacity: 0;
+  bottom: -300px;
+  width: 100%;
+}
+
+.Piano-Wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1 0;
+}
+
+.Piano {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  padding: calc(6 * var(--spacing-unit));
+}
+
+.Piano-Keys {
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+
+  button {
+    cursor: pointer;
+  }
+
+  &--Naturals {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    min-height: 150px;
+    z-index: 1;
+
+    button {
+      background: rgba(255, 255, 255, 0.5);
+      outline: 0;
+      margin: 3px;
+      // border: 0;
+      border: 10px solid;
+      border-image-slice: 1;
+      border-width: 5px;
+      border-image-source: linear-gradient(
+        to bottom,
+        rgba(116, 58, 213, 0.5),
+        rgba(213, 58, 157, 0.5)
+      );
+      transition: background 0.5s ease;
+      &:hover,
+      &.active {
+        border-image-source: linear-gradient(
+          to bottom,
+          rgba(116, 58, 213, 1),
+          rgba(213, 58, 157, 1)
+        );
+        p {
+          color: rgba(255, 255, 255, 1);
+        }
+      }
+
+      &:active,
+      &.active {
+        transform: translateY(1px);
+      }
+
+      p {
+        position: relative;
+        top: 50px;
+        font-weight: bold;
+        font-variant-caps: all-small-caps;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.5s ease;
+      }
+    }
+  }
+
+  &--Accidentals {
+    display: grid;
+    grid-template-columns: repeat(42, 1fr);
+    justify-items: center;
+    z-index: 2;
+
+    button {
+      background: rgba(0, 0, 0, 1);
+      border: 0;
+      padding: 0 1em;
+      margin-top: -147px;
+      margin-bottom: 50px;
+      position: relative;
+      outline: 0;
+      transition: background 0.5s ease;
+
+      &.on,
+      &:hover,
+      &.active {
+        background: linear-gradient(
+          to bottom,
+          rgba(116, 58, 213, 1),
+          rgba(213, 58, 157, 1)
+        );
+      }
+
+      &:active,
+      &.active {
+        transform: translateY(1px);
+      }
+
+      p {
+        position: relative;
+        top: 30%;
+        font-variant-caps: all-small-caps;
+        color: #fff;
+      }
+    }
+  }
+
+  &--Accidentals .C {
+    grid-column: 6 / span 2;
+  }
+
+  &--Accidentals .D {
+    grid-column: 12 / span 2;
+  }
+
+  &--Accidentals .F {
+    grid-column: 24 / span 2;
+  }
+
+  &--Accidentals .G {
+    grid-column: 30 / span 2;
+  }
+
+  &--Accidentals .A {
+    grid-column: 36 / span 2;
+  }
+}

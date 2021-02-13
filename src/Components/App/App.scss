@@ -1,0 +1,8 @@
+.Logo {
+  cursor: pointer;
+  z-index: 10;
+  position: fixed;
+  top: calc(4 * var(--spacing-unit));
+  left: calc(4 * var(--spacing-unit));
+  width: 36px;
+}

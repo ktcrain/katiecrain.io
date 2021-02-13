@@ -1,0 +1,96 @@
+:root {
+  /*************************** Page-wide variables ****************************/
+
+  --base-font-size: 16px;
+
+  /* Base spacing unit. */
+  --spacing-unit: 6px;
+
+  /* Margin size. No unit, because it's a multiple of the spacing unit. */
+  --margins: 2;
+
+  /* Colors. */
+  --primary-color: #222;
+  --primary-color-text: #fff;
+  --primary-color-bg: #eee;
+
+  /* Number of columns to show. */
+  --grid-columns: 3;
+
+  /***************************** Calculated values ****************************/
+  /* We don't use calc here because we don't want to resolve the values yet.
+          You can think of these as simple textual replacements. */
+
+  /* The size of the margin around the card grid. */
+  --margin-size: (var(--margins) * 2);
+
+  /* How much internal padding each cell should have */
+  --cell-padding: (4 * var(--spacing-unit));
+
+  /* How big the space between cells should be */
+  --grid-gutter: (var(--margins) * var(--spacing-unit));
+
+  /* How big the space should be around the grid */
+  --grid-margin: (var(--margin-size) * var(--spacing-unit));
+
+  /* Calculated cell margin */
+  --cell-margin: (var(--grid-gutter) / 2);
+  --cell-color: #222;
+  --cell-color-bg: pink;
+
+  --red: rgba(237, 37, 78, 1); // #ed254e
+  --navy: rgba(1, 25, 54, 1); // #011936
+  --mint: rgba(194, 234, 189, 1); // #c2eabd
+  --yellow: rgba(249, 220, 92, 1); // #f9dc5c
+  --bluegray: rgba(70, 83, 98, 1); // #465362
+  --gray: rgba(78, 90, 106); // #4e5a69
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  background-color: #fff;
+  color: #000;
+  font-family: "Lato", Roboto, Oxygen, "Open Sans", "Helvetica Neue", sans-serif,
+    serif;
+  font-size: 100%;
+  font-weight: 300;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+body {
+  /* Resets */
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.btn-circle {
+  width: 10rem;
+  height: 10rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: 300;
+  text-transform: uppercase;
+  color: #fff;
+  background: transparent;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  transition: all 500 ease-in-out;
+  &:hover {
+    background: #fff;
+    color: #000;
+  }
+}

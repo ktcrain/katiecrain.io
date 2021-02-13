@@ -1,0 +1,50 @@
+.Contact-Form {
+  text-align: left;
+  font-size: 2rem;
+  line-height: 2rem;
+  padding: calc(12 * var(--spacing-unit));
+  padding-top: 0;
+  label span {
+    display: block;
+    color: #fff;
+    font-size: 1rem;
+  }
+  .Form-Element {
+    padding: calc(3 * var(--spacing-unit));
+  }
+  input,
+  textarea {
+    min-width: 18rem;
+    background: rgba(0, 0, 0, 0.8);
+    color: rgba(255, 0, 255, 1);
+    border: 10px solid;
+    border-image-slice: 1;
+    border-width: 5px;
+    border-image-source: linear-gradient(
+      to bottom,
+      rgba(116, 58, 213, 0.5),
+      rgba(213, 58, 157, 0.5)
+    );
+    &:focus,
+    &:active {
+      outline: 3px solid rgb(255, 0, 255);
+    }
+  }
+  button {
+    border: 0;
+    min-width: 18rem;
+    background: rgba(255, 0, 255, 0.5);
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    padding: calc(3 * var(--spacing-unit));
+    &:hover {
+      background: rgba(255, 0, 255, 1);
+    }
+    &:focus,
+    &:active {
+      outline: none;
+    }
+  }
+}

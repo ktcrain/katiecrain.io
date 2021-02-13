@@ -1,0 +1,148 @@
+@import "~flickity/css/flickity.css";
+
+.Projects {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  overflow-y: hidden;
+  z-index: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 0, 0, 1) 0%,
+    rgba(255, 154, 0, 1) 10%,
+    rgba(208, 222, 33, 1) 20%,
+    rgba(79, 220, 74, 1) 30%,
+    rgba(63, 218, 216, 1) 40%,
+    rgba(47, 201, 226, 1) 50%,
+    rgba(28, 127, 238, 1) 60%,
+    rgba(95, 21, 242, 1) 70%,
+    rgba(186, 12, 248, 1) 80%,
+    rgba(251, 7, 217, 1) 90%,
+    rgba(255, 0, 0, 1) 100%
+  );
+  &-Inner {
+    padding: calc(6 * var(--spacing-unit)) calc(6 * var(--spacing-unit));
+    transform: rotateZ(10deg);
+    @media only screen and (max-width: 1000px) {
+      transform: rotateZ(0deg);
+      padding: calc(3 * var(--spacing-unit)) calc(3 * var(--spacing-unit));
+    }
+    overflow: visible;
+  }
+
+  &-Slider {
+    &-Slide {
+      margin: 3rem; /* BurgerMenu is 36px tall */
+      // background: orange;
+      transform: rotateZ(-10deg);
+      overflow: visible;
+      padding: calc(6 * var(--spacing-unit));
+      width: 100%;
+      position: relative;
+      display: flex;
+      @media only screen and (max-width: 1000px) {
+        padding: calc(1 * var(--spacing-unit));
+        transform: rotateZ(0deg);
+      }
+      &-Container {
+        height: 100vh;
+        // background: green;
+        display: flex;
+        justify-content: flex-start;
+        align-content: flex-start;
+        @media only screen and (max-width: 800px) {
+          flex-direction: column;
+        }
+        .image {
+          width: 60%;
+          padding: calc(6 * var(--spacing-unit));
+          @media only screen and (max-width: 800px) {
+            padding: 0;
+            width: 100%;
+            align-self: center;
+          }
+          img {
+            width: 100%;
+            // max-width: 50vw;
+          }
+        }
+        .content {
+          // background: yellow;
+          position: relative;
+          .title {
+            // background: lime;
+            width: 100%;
+            font-size: clamp(2rem, 8vw, 5rem);
+            text-align: left;
+            position: absolute;
+            padding: 0;
+            margin: 2rem 0 0 4rem;
+
+            transform-origin: 0 0;
+            transform: rotate(90deg);
+            @media only screen and (max-width: 1000px) {
+              position: static;
+              transform: rotate(0deg);
+              margin-left: 0;
+              margin-top: 0;
+              padding: calc(3 * var(--spacing-unit));
+            }
+            @media only screen and (max-width: 800px) {
+              text-align: center;
+            }
+          }
+          .number {
+            // background: pink;
+            margin: 0;
+            font-size: clamp(3rem, 10vw, 7rem);
+            text-align: left;
+            margin: 10% 0 0 30%;
+            @media only screen and (max-width: 1000px) {
+              margin-top: 30%;
+              display: none;
+            }
+          }
+          .description {
+            // background: purple;
+            padding: calc(6 * var(--spacing-unit))
+              calc(12 * var(--spacing-unit));
+            margin: 0;
+            text-align: left;
+            font-size: clamp(1rem, 2vw, 2rem);
+            line-height: 2rem;
+            @media only screen and (max-width: 1000px) {
+              padding: calc(3 * var(--spacing-unit));
+            }
+            @media only screen and (max-width: 800px) {
+              // align-self: center;
+              text-align: center;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.Projects,
+.Projects-Inner,
+.Projects-Slider
+// .Projects-Slider-Slide
+{
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.flickity-button {
+  background: rgba(208, 222, 33, 1);
+  @media only screen and (max-width: 800px) {
+    display: none;
+  }
+  svg {
+    fill: rgba(255, 0, 0, 1);
+  }
+}
+
+.flickity-page-dots {
+  display: none;
+}
