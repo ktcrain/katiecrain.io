@@ -60,38 +60,17 @@ function MagicCanvas() {
   const baseUrl = 'http://localhost:3000/assets/audio/';
 
   const songs = [
-    {title: 'Higher Love', artist: { title: 'Whitney'} , url: baseUrl + 'higher-love.mp3'},
+    {title: 'Higher Love', bpm: 104, artist: { title: 'Whitney'} , url: baseUrl + 'higher-love.mp3'},
     {title: 'Express Yourself', artist: { title: 'N.W.A.'} , url: baseUrl + 'express-yourself.m4a'},
     {title: 'La Di Da Di.mp3', artist: { title: 'Slick Rick'} , url: baseUrl + 'la-di-da-di.mp3'},
     {title: 'A Little Mozart', artist: { title: 'Mozart'} , url: baseUrl + 'a-little-mozart.mp3'},
     {title: 'Into You', artist: { title: 'Mozart'} , url: baseUrl + 'into-you.m4a'},
     {title: 'Mr. Big Stuff', bpm: 93, artist: { title: 'Jean Knight'} , url: baseUrl + 'mr-big-stuff.m4a'},
     {title: 'Pretty Girls', artist: { title: 'Wale'} , url: baseUrl + 'pretty-girls.m4a'},
-    {title: 'MY PYT', artist: { title: 'Wale'} , url: baseUrl + 'my-pyt.m4a'},
+    {title: 'MY PYT', bpm: 96, artist: { title: 'Wale'} , url: baseUrl + 'my-pyt.m4a'},
   ];
 
-  const [song, setSong] = useState(songs[5]);
-
-  const notes = [
-    "C3",
-    "C3",
-    "E3",
-    "E3",
-    "A2",
-    "A2",
-    "C3",
-    "C3",
-    "D3",
-    "D3",
-    "F3",
-    "F3",
-    "B2",
-    "B2",
-    "D3",
-    "D3",
-  ];
-
-  const noteIndex = useRef(0);
+  const [song, setSong] = useState(songs[7]);
 
   const windowSize = useWindowSize();
   useEffect(() => {
@@ -137,7 +116,7 @@ function MagicCanvas() {
       fft.current.normalRange = true;
 
       transport.current = Tone.Transport;
-      Tone.Transport.bpm.value = 93;
+      Tone.Transport.bpm.value = song.bpm;
 
       Tone.Transport.scheduleRepeat(time => {
         console.log('beat');
@@ -229,16 +208,10 @@ function MagicCanvas() {
       noiseSize.current = updateAudioProps(fft.current);
       let heights = fft.current.getValue();
 
-      // console.log(heights);
-
       const plane = scene.current.getObjectByName("plane");
 
       if(onBeat.current) {        
         onBeat.current = false;
-
-        // const scale = 0.1 * KTUtil.randomInt(5,10);        
-        // // plane.scale.set(scale, scale, scale);
-        // TweenMax.to(plane.scale, 0.3, { x: scale, y: scale, z: scale});
 
         plane.material.uniforms.lineCount.value = KTUtil.randomInt(10,30);
         plane.material.uniforms.lineSize.value = (30 - plane.material.uniforms.lineCount.value)/30;
@@ -257,8 +230,6 @@ function MagicCanvas() {
           filters.current['kaleidoShader'].enabled = !filters.current['kaleidoShader'].enabled;
           filters.current['kaleidoShader'].uniforms.sides.value = 1.0 * Math.floor(KTUtil.randomRange(1, 6));
         }
-        // filters.current['kaleidoShader'].enabled = false;
-
       }
 
 			// plane.material.uniforms.noiseSize.value = KTUtil.lerp(noise.noise(uTime.current/4,40)/2 +.5,0,7);
