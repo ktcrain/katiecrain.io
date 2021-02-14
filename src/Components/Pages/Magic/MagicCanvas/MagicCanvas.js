@@ -57,7 +57,7 @@ function MagicCanvas() {
   const beatCount = useRef(0);
 
 
-  const baseUrl = 'https://katiecrain.io/assets/audio/';
+  const baseUrl = '/assets/audio/';
 
   const songs = [
     {title: 'Higher Love', bpm: 104, artist: { title: 'Whitney'} , url: baseUrl + 'higher-love.mp3'},

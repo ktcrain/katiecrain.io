@@ -2,7 +2,7 @@ import * as THREE from "three";
 import HomeSphereShaderMaterial from "../shaders/HomeSphereShaderMaterial";
 
 function createGeometry({ rect }) {
-  return new THREE.SphereGeometry(rect.width, 100, 100);
+  return new THREE.SphereGeometry(rect.width, 32, 32);
 }
 
 function addSphereMesh({ scene, rect }) {
@@ -12,9 +12,11 @@ function addSphereMesh({ scene, rect }) {
     uniforms: HomeSphereShaderMaterial.uniforms,
     vertexShader: HomeSphereShaderMaterial.vertexShader,
     fragmentShader: HomeSphereShaderMaterial.fragmentShader,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
     depthTest: true,
     transparent: true,
-    wireframe: true,
+    wireframe: false,
   });
 
   const mesh = new THREE.Mesh(geometry, material);

@@ -13,13 +13,26 @@ const customUniforms = {
   uTime: { type: "f", value: 0.0 },
   uRes: { type: "vec2", value: { x: 500, y: 500 } },
   uMouse: { type: "vec3", value: { x: 0, y: 0, z: 0 } },
+  // noiseIn: { type: "f", value: 0.0 },
   noiseSize: { type: "f", value: 1.0 },
   raycastUv: { type: "vec2", value: { x: 0, y: 0 } },
-  depth: { type: "f", value: 10.0 },
+  depth: { type: "f", value: 100.0 },
   pallete: { type: "t", value: null },
-  ripplePoints: {
-    type: "v3v",
-    value: new Array(3).fill(new THREE.Vector3(0, 0, 0)),
+
+  "lineTime": { type: "f", value: 1.0 },
+  "lineCount": { type: "f", value: 32.0 },
+  "dotSize": { type: "f", value: 0.3 },
+  "lineSize": { type: "f", value: 0.2 },
+  "blur": { type: "f", value: 0.05 },
+  "spiral": { type: "b", value: false },
+
+  // ripplePoints: {
+  //   type: "v3v",
+  //   value: new Array(3).fill(new THREE.Vector3(0, 0, 0)),
+  // },
+  freqs: {
+    type: "fv",
+    value: new Array(32).fill(1.0),
   },
 };
 
@@ -36,231 +49,214 @@ const uniforms = THREE.UniformsUtils.merge([
 const HomeSphereShaderMaterial = {
   uniforms: uniforms,
   vertexShader: [
+    
+    "float map(float value, float min1, float max1, float min2, float max2) { return min2 + (value - min1) * (max2 - min2) / (max1 - min1);}",
+
+    "float random (in float x) { return fract(sin(x)*43758.5453123);}",
+
+    "float noise (in float x) {",
+        "float i = floor(x);",
+        "float f = fract(x);",
+
+        "float a = random(i);",
+        "float b = random(i + 1.);",
+        "float u = f * f * (3.0 - 2.0 * f);",
+
+        "return mix(a, b, u);",
+    "}",
+
+    "#define OCTAVES 3",
+    "float fbm (in float x) {",
+        "float value = 0.0;",
+        "float amplitude = .5;",
+        "float frequency = 0.;",
+        
+        "for (int i = 0; i < OCTAVES; i++) {",
+            "value += amplitude * noise(x);",
+            "x *= 2.;",
+            "amplitude *= .7;",
+        "}",
+        "return value;",
+    "}",
+    
+		"vec3 mod289(vec3 x) {",
+		  "return x - floor(x * (1.0 / 289.0)) * 289.0;",
+		"}",
+
+		"vec2 mod289(vec2 x) {",
+		  "return x - floor(x * (1.0 / 289.0)) * 289.0;",
+		"}",
+
+		"vec3 permute(vec3 x) {",
+		  "return mod289(((x*34.0)+1.0)*x);",
+		"}",
+
+		"float snoise(vec2 v) {",
+
+			"const vec4 C = vec4(0.211324865405187,",  // (3.0-sqrt(3.0))/6.0
+			"				  0.366025403784439,",  // 0.5*(sqrt(3.0)-1.0)
+			"				 -0.577350269189626,",  // -1.0 + 2.0 * C.x
+			"				  0.024390243902439);", // 1.0 / 41.0",
+
+			"vec2 i  = floor(v + dot(v, C.yy) );",
+			"vec2 x0 = v -   i + dot(i, C.xx);",
+
+			"vec2 i1;",
+			"i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);",
+			"vec4 x12 = x0.xyxy + C.xxzz;",
+			"x12.xy -= i1;",
+
+			"i = mod289(i); // Avoid truncation effects in permutation",
+			"vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))",
+			"	+ i.x + vec3(0.0, i1.x, 1.0 ));",
+
+			"vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);",
+			"m = m*m ;",
+			"m = m*m ;",
+
+			"vec3 x = 2.0 * fract(p * C.www) - 1.0;",
+			"vec3 h = abs(x) - 0.5;",
+			"vec3 ox = floor(x + 0.5);",
+			"vec3 a0 = x - ox;",
+
+			"m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );",
+
+			"vec3 g;",
+			"g.x  = a0.x  * x0.x  + h.x  * x0.y;",
+			"g.yz = a0.yz * x12.xz + h.yz * x12.yw;",
+			"return 130.0 * dot(m, g);",
+		"}",
+
+		// End Ashima 2D Simplex Noise
+
     "#define PI 3.1415926538",
 
-    "uniform vec2 raycastUv;",
-    "uniform float depth;",
-    "uniform float noiseSize;",
     "uniform float uTime;",
-    "uniform vec3 uMouse;",
-    "uniform vec3 ripplePoints[3];",
-
     "varying vec2 vUv;",
-    "varying vec3 p;",
     "varying float vNoiseDisp;",
-    "varying float vPointRippleDisp;",
+    "uniform float noiseSize;",
+    "uniform float depth;",
+    "uniform bool spiral;",
+    "uniform float freqs[32];",
+    "varying vec2 uvf;",
 
-    "float random (in vec2 st) {",
-    "return fract(sin(dot(st.xy, vec2(12.9898,78.233)))*43758.5453123);",
-    "}",
+		"void main() {",
+			"vUv = uv;",
+      "vec3 p = position;",
 
-    // Based on Morgan McGuire @morgan3d,
-    // https://www.shadertoy.com/view/4dS3Wd
-    "float noise (in vec2 st) {",
-    "vec2 i = floor(st);",
-    "vec2 f = fract(st);",
+      // "vUv.y *= 32.;",
 
-    // Four corners in 2D of a tile
-    "float a = random(i);",
-    "float b = random(i + vec2(1.0, 0.0));",
-    "float c = random(i + vec2(0.0, 1.0));",
-    "float d = random(i + vec2(1.0, 1.0));",
+      "uvf.x = freqs[int(ceil(vUv.x*32.))];",
+      "uvf.y = freqs[int(ceil(vUv.y*32.))];",
 
-    "vec2 u = f * f * (3.0 - 2.0 * f);",
+      // // // Find distance from center vector
+      "if(spiral) {",
+        "float toCenter = distance(vUv,vec2(0.5));",
+        "vUv = vec2(0.5) * toCenter * vUv;",
+      "}",
 
-    "return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;",
-    "}",
+			"vNoiseDisp = snoise(vUv*noiseSize*10.);",
+			"p = position + normal * vNoiseDisp *depth * 2.;",
 
-    "vec3 mod289(vec3 x) {",
-    "return x - floor(x * (1.0 / 289.0)) * 289.0;",
-    "}",
+      // "p.x = p.x * log(uvf.y)/2. * 0.1;",
+      // "p.y = p.y * uvf.x * 10.;",
 
-    "vec2 mod289(vec2 x) {",
-    "return x - floor(x * (1.0 / 289.0)) * 289.0;",
-    "}",
-
-    "vec3 permute(vec3 x) {",
-    "return mod289(((x*34.0)+1.0)*x);",
-    "}",
-
-    "float snoise(vec2 v) {",
-
-    "const vec4 C = vec4(0.211324865405187,", // (3.0-sqrt(3.0))/6.0
-    "				  0.366025403784439,", // 0.5*(sqrt(3.0)-1.0)
-    "				 -0.577350269189626,", // -1.0 + 2.0 * C.x
-    "				  0.024390243902439);", // 1.0 / 41.0",
-
-    "vec2 i  = floor(v + dot(v, C.yy) );",
-    "vec2 x0 = v -   i + dot(i, C.xx);",
-
-    "vec2 i1;",
-    "i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);",
-    "vec4 x12 = x0.xyxy + C.xxzz;",
-    "x12.xy -= i1;",
-
-    "i = mod289(i); // Avoid truncation effects in permutation",
-    "vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))",
-    "	+ i.x + vec3(0.0, i1.x, 1.0 ));",
-
-    "vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);",
-    "m = m*m ;",
-    "m = m*m ;",
-
-    "vec3 x = 2.0 * fract(p * C.www) - 1.0;",
-    "vec3 h = abs(x) - 0.5;",
-    "vec3 ox = floor(x + 0.5);",
-    "vec3 a0 = x - ox;",
-
-    "m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );",
-
-    "vec3 g;",
-    "g.x  = a0.x  * x0.x  + h.x  * x0.y;",
-    "g.yz = a0.yz * x12.xz + h.yz * x12.yw;",
-    "return 130.0 * dot(m, g);",
-    "}",
-
-    // End Ashima 2D Simplex Noise
-
-    "#define OCTAVES 2",
-    "float fbm (in vec2 st) {",
-    // Initial values
-    "float value = 0.0;",
-    "float amplitude = .5;",
-    "float frequency = 0.;",
-    //
-    // Loop of octaves
-    "for (int i = 0; i < OCTAVES; i++) {",
-    "value += amplitude * noise(st);",
-    "st *= 2.;",
-    // "amplitude *= .0005;",
-    "}",
-    "return value;",
-    "}",
-
-    "float fbm2 ( in vec2 _st) {",
-    "float v = 0.0;",
-    "float a = 0.5;",
-    "vec2 shift = vec2(100.0);",
-    // Rotate to reduce axial bias
-    "mat2 rot = mat2(cos(0.5), sin(0.5),-sin(0.5), cos(0.50));",
-    "for (int i = 0; i < OCTAVES; ++i) {",
-    "v += a * noise(_st);",
-    "_st = rot * _st * 2.0 + shift;",
-    "a *= 0.5;",
-    "}",
-    "return v;",
-    "}",
-
-    "void main() {",
-    "vUv = uv;",
-    "vec3 p = position;",
-
-    // Distance from the pixel to the center
-    // "float toCenter = distance(vUv,vec2(0.5));",
-
-    // "vNoiseDisp = fbm(vUv * 10. * (abs(sin(uTime/1000.)) - 0.9));",
-    "vNoiseDisp = snoise(vUv * uTime * 0.01 + noiseSize*1000.);",
-
-    // Iterate through the points positions
-    // "for (int i = 0; i < 3; i++) {",
-
-    // // // Find distance from ripple intersect vector
-    // "float toRipplePoint = distance(vUv,ripplePoints[i].xy);",
-
-    // // boundary for circular ripple
-    // "float circularBound = 0.125 * ripplePoints[i].z;",
-
-    // // add a sin wave circular ripple radiating from mouse position
-    // "if(toRipplePoint < circularBound) {",
-    // "float freq = 3.;",
-    // "float amp = (1. - ripplePoints[i].z) * 30.;",
-    // "float z = amp*sin(-PI*toRipplePoint*freq*ripplePoints[i].z * 10.);",
-    // "p.z += min(30., z);",
-    // "vPointRippleDisp = z/100.;",
-    // "}",
-
-    // "}",
-
-    // // boundary for peak calc
-    // "float peakBound = 2.5;",
-
-    // // the z-depth made by the peak
-    // "float peakDepth = 100.;",
-
-    // // the steepness of the e^(x) curve
-    // "float peakSharpness = 50.;",
-
-    // "float toPoint = distance(vUv,raycastUv);",
-
-    // "if(toPoint < peakBound) {",
-    // "p.z += - peakDepth * normal.z * exp(vNoiseDisp - peakSharpness * toPoint);",
-    // "}",
-
-    // add normalized noise
-    "p += normal * vNoiseDisp * 50. + vNoiseDisp * 10.;",
-
-    "gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
-    "}",
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
+		"}",
   ].join("\n"),
 
   fragmentShader: [
-    " #define PI 3.14159265359",
-    "const vec3 black = vec3(0.0, 0.0, 0.0);",
-    "const vec3 grey = vec3(127.0, 127.0, 127.0);",
-    "const vec3 white = vec3(255.0, 255.0, 255.0);",
-    "const vec3 red = vec3(0.894,0.012,0.012);",
-    "const vec3 orange = vec3(1.000,0.549,0.000);",
-    "const vec3 yellow = vec3(1.000,0.929,0.000);",
-    "const vec3 green = vec3(0.000,0.502,0.149);",
-    "const vec3 blue = vec3(0.000,0.302,1.000);",
-    "const vec3 purple = vec3(0.459,0.027,0.529);",
-    "const vec3 darker = vec3(45.0/255.0,107.0/255.0,55.0/255.0);",
-    "const vec3 lighter = vec3(255.0/255.0,255.0/255.0,250.0/255.0);",
 
+    "#define PI 3.1415926538",
+
+		"vec3 hsv2rgb(vec3 c){",
+    		"vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);",
+    		"vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);",
+    		"return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);",
+		"}",
+    
     "uniform float uTime;",
     "uniform float noiseSize;",
-    "uniform vec2 raycastUv;",
-    "uniform vec2 uRes;",
-    "uniform vec3 uMouse;",
-    "uniform sampler2D pallete;",
+    "uniform float depth;",
+    "uniform float blur;",
+    // "uniform vec2 uRes;",
+    "uniform float lineTime;",
+    "uniform float lineCount;",
+    "uniform float lineSize;",
+    "uniform float dotSize;",
     "varying vec2 vUv;",
-    "varying vec3 p;",
+    "varying vec2 uvf;",
     "varying float vNoiseDisp;",
-    "varying float vPointRippleDisp;",
 
-    // HSV (hue, saturation, value)
-    "vec3 hsv2rgb(vec3 c){",
-    "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);",
-    "vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);",
-    "return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);",
-    "}",
+    "#define alpha 0.0",
+    "#define beta 10.0",
 
-    "float spiral(vec2 m, float t) {",
-    "float r = length(m);",
-    "float a = atan(m.y, m.x);",
-    "float v = sin(50.*(sqrt(r)-0.02*a-.3*t));",
-    "return clamp(v,0.,1.);",
+    "vec4 spiral4(vec2 coord, float uTime) {",
+      "float alpha_t = alpha - uTime * 50.0;",
+
+      "float x = coord.x;",
+      "float y = coord.y;",
+
+      "float r = sqrt(dot(coord, coord));",
+
+      "float phi = atan(y, x);",
+
+      "float phi_r = (r - alpha_t) / beta;",
+
+      "float r_phi = alpha_t + (beta * phi);",
+
+      "float remainder = abs(cos(phi) - cos(phi_r));",
+
+      "if (remainder < 0.5)",
+      "{",
+        "return vec4(vec3(0), 1.0);",
+      "}",
+      "else {",
+        "return vec4(vec3(remainder), 1.0);",
+      "}",
     "}",
 
     "void main() {",
 
-    // Find center
-    "vec2 toCenter = vec2(0.5)-vUv;",
-    "float angle = atan(toCenter.y,toCenter.x);",
-    "float radius = length(toCenter)*2.0;",
+      "vec3 black = vec3(0);",
+  		"vec3 c = hsv2rgb(vec3(vUv.x + uTime, 0.8, 0.7));",
+    	// "vec3 c = vec3(1);",
+      "vec2 st = vUv;",
+      "st.x += uTime*0.0005;",
+      "st.y += uTime*0.0005;",
 
-    "float hueFn = angle/(2.*PI)+0.5 * sin(uTime*0.001);",
-    "float satFn = radius;",
-    "float valFn = 0.5;",
-    "vec3 hsv = hsv2rgb(vec3(hueFn, satFn, valFn));",
-    "vec3 c = hsv;",
+			// find nearest dot posn
+			"vec2 nearest = 2.0*fract(lineCount * st) - 1.0;",
+			"float dist = length(nearest);",
+			"vec3 dotcol = mix(c, black, smoothstep(dotSize, dotSize + dotSize*blur, dist));",
 
-    "vec3 darken = mix(c,black,0.5);",
-    "c = mix(c, darken, 0.3 * vNoiseDisp);",
-    "c = mix(c, darken, 0.5 * vUv.x);",
+      // "st.x = 1. / length(st);",
 
-    "gl_FragColor = vec4(c, 1.0);",
+			//draw lines
 
+			"float x = fract(st.y * lineCount) - .5 + lineSize/2.;",
+			"float fx = smoothstep(-lineSize*blur,0.0, x) - smoothstep(lineSize, lineSize + lineSize*blur, x);",
+
+			"float y = fract(st.x * lineCount) - 0.5 + lineSize/2.;",
+		  "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
+		  // "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
+
+      "vec3 linecol = mix(black, c, fx + fy);",
+      
+			//make lines darker based on z pos. Lines further back are darker
+			// "c = mix(linecol, black, uvf);",
+			"c = mix(linecol + dotcol, black, -vNoiseDisp);",
+
+
+      // "c = mix(c,black,uvf.x);",
+
+      // // make a tube
+      // "float f = ;",
+      
+      // // add the angle
+      // "f += atan(vUv.x, vUv.y) / acos(0.);",
+
+      "gl_FragColor = vec4(c, 1.);",
     "}",
   ].join("\n"),
 };

@@ -23,13 +23,13 @@ function HomeCanvas() {
 
   const doSomething = () => {
     const sphereMesh = scene.current.getObjectByName("sphere");
-    TweenMax.to(sphereMesh.position, 3, { z: 0 });
+    TweenMax.to(sphereMesh.position, 3, { z: -200 });
 
     TweenMax.to(".Piano-Container", {
       opacity: 1,
       bottom: "20%",
       duration: 1,
-      delay: 2,
+      delay: 1,
     }); //wait 2 seconds
   };
 
@@ -88,6 +88,8 @@ function HomeCanvas() {
       updateNoiseTime();
       noiseSize.current = updateAudioProps(waveform);
 
+      const freqs = waveform.getValue();
+      console.log(freqs);
       // sphereMesh
       const sphereMesh = scene.current.getObjectByName("sphere");
       sphereMesh.material.uniforms.noiseSize.value = noiseSize.current;
