@@ -14,7 +14,7 @@ function addSphereMesh({ scene, rect }) {
     fragmentShader: HomeSphereShaderMaterial.fragmentShader,
     depthTest: true,
     transparent: true,
-    wireframe: false,
+    wireframe: true,
   });
 
   const mesh = new THREE.Mesh(geometry, material);
