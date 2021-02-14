@@ -58,7 +58,9 @@
           padding: calc(6 * var(--spacing-unit));
           @media only screen and (max-width: 800px) {
             padding: 0;
-            width: 100%;
+            width: 80%;
+            margin-top: 2rem;
+            margin-bottom: 3rem;
             align-self: center;
           }
           img {
@@ -77,7 +79,7 @@
             position: absolute;
             padding: 0;
             margin: 2rem 0 0 4rem;
-
+            
             transform-origin: 0 0;
             transform: rotate(90deg);
             @media only screen and (max-width: 1000px) {
@@ -89,6 +91,8 @@
             }
             @media only screen and (max-width: 800px) {
               text-align: center;
+              margin-top: 2rem;
+              padding: 0 calc(3 * var(--spacing-unit));
             }
           }
           .number {
@@ -111,10 +115,9 @@
             font-size: clamp(1rem, 2vw, 2rem);
             line-height: 2rem;
             @media only screen and (max-width: 1000px) {
-              padding: calc(3 * var(--spacing-unit));
+              padding: 0 calc(3 * var(--spacing-unit));
             }
             @media only screen and (max-width: 800px) {
-              // align-self: center;
               text-align: center;
             }
           }
