@@ -7,7 +7,10 @@ function Contact() {
   return (
     <div className="Page Contact" id="Contact">
       <ContactCanvas />
-      <div className="Page-Content Contact-Content">
+      <div
+        className="Page-Content Contact-Content"
+        style={{ height: window.innerHeight }}
+      >
         <ContactForm />
       </div>
     </div>

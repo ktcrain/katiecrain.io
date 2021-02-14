@@ -6,7 +6,10 @@ function About() {
   return (
     <div className="Page About">
       <AboutCanvas />
-      <div className="Page-Content About-Content">
+      <div
+        className="Page-Content About-Content"
+        style={{ height: window.innerHeight }}
+      >
         <p>
           With over two decades of industry experience, I thrive on matching
           client’s needs to creative solutions. I’m as comfortable behind a
