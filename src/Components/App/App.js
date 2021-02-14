@@ -22,7 +22,7 @@ function App() {
 
   useEffect(() => {
     document.querySelector("body").addEventListener("click", startAudioContext);
-  });
+  }, []);
 
   return (
     <Router>

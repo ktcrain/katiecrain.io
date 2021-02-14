@@ -11,8 +11,8 @@
 .Page-Content {
   width: 100%;
   display: flex;
+  min-height: fill-available;
   min-height: stretch;
-  min-height: calc(100vh);
   flex-direction: column;
   position: relative;
   justify-content: center;
