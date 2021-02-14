@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as Tone from "tone";
 import { TweenMax } from "gsap";
@@ -26,7 +26,8 @@ import { HorizontalTiltShiftShader } from 'three/examples/jsm/shaders/Horizontal
 import { VerticalTiltShiftShader } from 'three/examples/jsm/shaders/VerticalTiltShiftShader.js';
 import { HorizontalBlurShader } from 'three/examples/jsm/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/examples/jsm/shaders/VerticalBlurShader.js';
-
+import BadTVShader from '@shared/shaders/BadTVShader';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 
 function MagicCanvas() {
 
@@ -42,6 +43,9 @@ function MagicCanvas() {
   let noiseSize = useRef(0.0);
   let requestId = useRef();
   const player = useRef();
+  const buffer = useRef();
+  const offlineContext = useRef();
+  const transport = useRef();
   const fft = useRef();
   const waveform = useRef();
   const lines = useRef([]);
@@ -50,6 +54,23 @@ function MagicCanvas() {
   const columns = 100;
   const filters = useRef([]);
   const onBeat = useRef(false);
+  const beatCount = useRef(0);
+
+
+  const baseUrl = 'http://localhost:3000/assets/audio/';
+
+  const songs = [
+    {title: 'Higher Love', artist: { title: 'Whitney'} , url: baseUrl + 'higher-love.mp3'},
+    {title: 'Express Yourself', artist: { title: 'N.W.A.'} , url: baseUrl + 'express-yourself.m4a'},
+    {title: 'La Di Da Di.mp3', artist: { title: 'Slick Rick'} , url: baseUrl + 'la-di-da-di.mp3'},
+    {title: 'A Little Mozart', artist: { title: 'Mozart'} , url: baseUrl + 'a-little-mozart.mp3'},
+    {title: 'Into You', artist: { title: 'Mozart'} , url: baseUrl + 'into-you.m4a'},
+    {title: 'Mr. Big Stuff', bpm: 93, artist: { title: 'Jean Knight'} , url: baseUrl + 'mr-big-stuff.m4a'},
+    {title: 'Pretty Girls', artist: { title: 'Wale'} , url: baseUrl + 'pretty-girls.m4a'},
+    {title: 'MY PYT', artist: { title: 'Wale'} , url: baseUrl + 'my-pyt.m4a'},
+  ];
+
+  const [song, setSong] = useState(songs[5]);
 
   const notes = [
     "C3",
@@ -99,33 +120,10 @@ function MagicCanvas() {
     */
     const mountPlayer = () => {
 
-      // const baseUrl = 'https://all-the-music.s3.amazonaws.com';
-      const baseUrl = 'http://localhost:3000/assets/audio';
+      // console.log(`Loading Song: ${url}`);
 
-      const songs = [
-        {title: 'Higher Love', artist: { title: 'Whitney'} , uri: 'higher-love.mp3'},
-        {title: 'Express Yourself', artist: { title: 'N.W.A.'} , uri: 'express-yourself.m4a'},
-        {title: 'La Di Da Di.mp3', artist: { title: 'Slick Rick'} , uri: 'la-di-da-di.mp3'},
-        {title: 'A Little Mozart', artist: { title: 'Mozart'} , uri: 'a-little-mozart.mp3'},
-        {title: 'Into You', artist: { title: 'Mozart'} , uri: 'into-you.m4a'},
-        {title: 'Mr. Big Stuff', artist: { title: 'Jean Knight'} , uri: 'mr-big-stuff.m4a'},
-        {title: 'Pretty Girls', artist: { title: 'Wale'} , uri: 'pretty-girls.m4a'},
-        {title: 'MY PYT', artist: { title: 'Wale'} , uri: 'my-pyt.m4a'},
-      ];
-
-      // [TODO]? Find song dynamically (currently via config by uri)
-      const song = songs[7];
-      const url = baseUrl + '/' + song.uri;
-
-      console.log(`Loading Song: ${url}`);
-
-      player.current = new Tone.Player({url, autostart: true}).toDestination();
-
-      /*
-      * START BEAT DETECTION
-      */
-
-      const beatFilter = new Tone.Filter(100, "lowpass", -96);
+      const beatFilter = new Tone.Filter(300, "lowpass", -96);
+      // beatFilter, 
 
       // Create an fft analyser node
       // fft.current = new Tone.Analyser("fft", rows);
@@ -135,13 +133,39 @@ function MagicCanvas() {
       waveform.current = new Tone.Analyser("waveform", 32);
 
       // Create a new list of amplitudes filled with 0s
-      fft.current.amplitudes = new Array(fft.current).fill(0);
+      // fft.current.amplitudes = new Array(fft.current).fill(0);
       fft.current.normalRange = true;
 
-      player.current.chain(beatFilter, fft.current, waveform.current, Tone.Destination);
+      transport.current = Tone.Transport;
+      Tone.Transport.bpm.value = 93;
+
+      Tone.Transport.scheduleRepeat(time => {
+        console.log('beat');
+        onBeat.current = true;
+        beatCount.current++;
+      }, "2n");
+
+      console.log(song);
+      buffer.current = new Tone.Buffer(song.url, (buffer) => {
+        const buff = buffer.get();
+        console.log("Buffer loaded");
+        console.log(buffer);
+        offlineContext.current = new Tone.OfflineContext(1, 0.5, 44100);
+
+        player.current = new Tone.Player(buff);
+        player.current.chain(fft.current, waveform.current, Tone.Destination);
+        player.current.start();
+
+        Tone.Transport.start("+0");
+
+      }, (err) => {
+        console.log("Buffer Error");
+        console.log(err);
+      });
     }
     mountPlayer();
 
+  
     return () => player.current.stop();
   }, []);
 
@@ -175,7 +199,9 @@ function MagicCanvas() {
 
       // filters.current['glitchPass'] = new GlitchPass();
       filters.current['rGBShiftPass'] = new ShaderPass( RGBShiftShader );
-      // filters.current['mirrorShader'] = new ShaderPass( MirrorShader );
+      filters.current['rGBShiftPass'].enabled = false;
+      // filters.current['filmPass'] = new FilmPass(0.35,0.025,648,false);
+      // filters.current['badTVShader'] = new ShaderPass( BadTVShader );
       filters.current['kaleidoShader'] = new ShaderPass( KaleidoShader );
       filters.current['kaleidoShader'].enabled = false;
       
@@ -201,39 +227,54 @@ function MagicCanvas() {
 
       updateNoiseTime();
       noiseSize.current = updateAudioProps(fft.current);
-      // noiseSize.current = Math.sin(uTime) * 1000;
       let heights = fft.current.getValue();
 
-      // for(let h = 0;h<heights.length;h++) {
-      //   heights[h] = KTUtil.map(h,0.01,1,0,100)
-      // }
+      // console.log(heights);
 
       const plane = scene.current.getObjectByName("plane");
 
-      if(noiseSize.current > 0.002) {        
-        TweenMax.to(plane.rotation, 0.3, { z: plane.rotation.z + noiseSize.current * 50 });
-        filters.current['kaleidoShader'].enabled = !filters.current['kaleidoShader'].enabled;
-        filters.current['kaleidoShader'].uniforms.sides.value = 1.0 * Math.floor(KTUtil.randomRange(1, 6));
-        TweenMax.to(plane.material.uniforms.lineSize, 0.5, { value: 0.1 * Math.floor(KTUtil.randomRange(1, 6)) });
-        TweenMax.to(plane.material.uniforms.dotSize, 0.5, { value: 0.1 * Math.floor(KTUtil.randomRange(1, 6)) });
+      if(onBeat.current) {        
+        onBeat.current = false;
+
+        // const scale = 0.1 * KTUtil.randomInt(5,10);        
+        // // plane.scale.set(scale, scale, scale);
+        // TweenMax.to(plane.scale, 0.3, { x: scale, y: scale, z: scale});
+
+        plane.material.uniforms.lineCount.value = KTUtil.randomInt(10,30);
+        plane.material.uniforms.lineSize.value = (30 - plane.material.uniforms.lineCount.value)/30;
+
+        if(beatCount.current % 8 === 0) {
+          plane.material.uniforms.spiral.value = !plane.material.uniforms.spiral.value;
+        }
+        plane.material.uniforms.spiral.value = false;
+
+        TweenMax.to(plane.rotation, 0.3, { z: plane.rotation.z + noiseSize.current * 1000/2 });
+
+        filters.current['rGBShiftPass'].uniforms.angle.value = noiseSize.current * 3;
+        filters.current['rGBShiftPass'].uniforms.amount.value = noiseSize.current;
+
+        if(beatCount.current % 4 === 0) {
+          filters.current['kaleidoShader'].enabled = !filters.current['kaleidoShader'].enabled;
+          filters.current['kaleidoShader'].uniforms.sides.value = 1.0 * Math.floor(KTUtil.randomRange(1, 6));
+        }
+        // filters.current['kaleidoShader'].enabled = false;
+
       }
 
 			// plane.material.uniforms.noiseSize.value = KTUtil.lerp(noise.noise(uTime.current/4,40)/2 +.5,0,7);
+      plane.material.uniforms.freqs.value = heights;
 			plane.material.uniforms.noiseSize.value = noiseSize.current;
       plane.material.uniforms.depth.value += KTUtil.lerp(noise.noise(uTime.current/4,40)/2 +.5,0,0.1);
       plane.material.uniforms.uTime.value = uTime.current;
       plane.material.uniforms.uRes.value = {x: rect.width, y: rect.height};
 
-      filters.current['rGBShiftPass'].uniforms.angle.value = noiseSize.current * 10;
-      // filters.current['rGBShiftPass'].uniforms.amount.value = noiseSize.current;
-
-      plane.rotation.z += 0.001;
+      // plane.rotation.z += 0.001;
 
       composer.current.render();
     };
 
     animate();
-
+    
     return () => {
       renderer.current.dispose();
       cancelAnimationFrame(requestId.current);

@@ -20,19 +20,20 @@ const customUniforms = {
   pallete: { type: "t", value: null },
 
   "lineTime": { type: "f", value: 1.0 },
-  "lineCount": { type: "f", value: 40.0 },
+  "lineCount": { type: "f", value: 32.0 },
   "dotSize": { type: "f", value: 0.3 },
   "lineSize": { type: "f", value: 0.2 },
   "blur": { type: "f", value: 0.05 },
+  "spiral": { type: "b", value: false },
 
   // ripplePoints: {
   //   type: "v3v",
   //   value: new Array(3).fill(new THREE.Vector3(0, 0, 0)),
   // },
-  // freqs: {
-  //   type: "fv",
-  //   value: new Array(32).fill(1.0),
-  // },
+  freqs: {
+    type: "fv",
+    value: new Array(32).fill(1.0),
+  },
 };
 
 const uniforms = THREE.UniformsUtils.merge([
@@ -135,20 +136,31 @@ const MagicLandShaderMaterial = {
     "varying float vNoiseDisp;",
     "uniform float noiseSize;",
     "uniform float depth;",
+    "uniform bool spiral;",
+    "uniform float freqs[32];",
+    "varying vec2 uvf;",
 
 		"void main() {",
 			"vUv = uv;",
       "vec3 p = position;",
 
-      // "vUv.y *= 2.;",
+      // "vUv.y *= 32.;",
+
+      "uvf.x = freqs[int(ceil(vUv.x*32.))];",
+      "uvf.y = freqs[int(ceil(vUv.y*32.))];",
 
       // // // Find distance from center vector
-      "float toCenter = distance(vUv,vec2(0.5));",
-
-      "vUv = vec2(0.5) * toCenter * vUv;",
+      "if(spiral) {",
+        "float toCenter = distance(vUv,vec2(0.5));",
+        "vUv = vec2(0.5) * toCenter * vUv;",
+      "}",
 
 			"vNoiseDisp = snoise(vUv*noiseSize*1000. + uTime * 0.001);",
 			"p = position + normal * vNoiseDisp *depth;",
+
+      "p.x = p.x * log(uvf.y)/2. * 0.1;",
+      // "p.y = p.y * uvf.x * 10.;",
+
 			"gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
 		"}",
   ].join("\n"),
@@ -173,6 +185,7 @@ const MagicLandShaderMaterial = {
     "uniform float lineSize;",
     "uniform float dotSize;",
     "varying vec2 vUv;",
+    "varying vec2 uvf;",
     "varying float vNoiseDisp;",
 
     "#define alpha 0.0",
@@ -209,8 +222,8 @@ const MagicLandShaderMaterial = {
   		"vec3 c = hsv2rgb(vec3(vUv.x + uTime, 0.8, 0.7));",
     	// "vec3 c = vec3(1);",
       "vec2 st = vUv;",
-      "st.x += uTime*0.1;",
-      // "st.y += uTime*0.001;",
+      // "st.x += uTime*0.1;",
+      // "st.y += uTime*0.1;",
 
 			// find nearest dot posn
 			"vec2 nearest = 2.0*fract(lineCount * st) - 1.0;",
@@ -221,26 +234,27 @@ const MagicLandShaderMaterial = {
 
 			//draw lines
 
-      "float r = length(vUv);",
-      "float a = atan(vUv.y,vUv.x);",
-			"float fr = fract(a * lineCount) * r;",
-
 			"float x = fract(st.y * lineCount) - .5 + lineSize/2.;",
 			"float fx = smoothstep(-lineSize*blur,0.0, x) - smoothstep(lineSize, lineSize + lineSize*blur, x);",
-			"float y = fract(st.x * lineCount) - 0.5 + lineSize/2.;",
-		  "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
-      "vec3 linecol = mix(black, c, fy);",
+
+			// "float y = fract(st.x * lineCount) - 0.5 + lineSize/2.;",
+		  // // "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
+		  // "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
+
+      "vec3 linecol = mix(black, c, fx);",
       
 			//make lines darker based on z pos. Lines further back are darker
+			// "c = mix(linecol, black, uvf);",
 			"c = mix(linecol + dotcol, black, -vNoiseDisp);",
+
+
+      // "c = mix(c,black,uvf.x);",
 
       // // make a tube
       // "float f = ;",
       
       // // add the angle
       // "f += atan(vUv.x, vUv.y) / acos(0.);",
-
-      // "c = mix(dotcol, c, f);",
 
       "gl_FragColor = vec4(c, 1.);",
     "}",

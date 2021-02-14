@@ -37,7 +37,7 @@ function addLandMesh({ scene, rect, rows, columns }) {
   // mesh.rotation.x = -Math.PI / 3;
   mesh.rotation.z = Math.PI / 2;
   // mesh.position.y = -300;
-  mesh.position.z = -100;
+  mesh.position.z = -200;
 
   mesh.updateMatrixWorld();
 
