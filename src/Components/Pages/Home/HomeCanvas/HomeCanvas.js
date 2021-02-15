@@ -23,7 +23,7 @@ function HomeCanvas() {
 
   const doSomething = () => {
     const sphereMesh = scene.current.getObjectByName("sphere");
-    TweenMax.to(sphereMesh.position, 3, { z: -200 });
+    TweenMax.to(sphereMesh.position, 3, { z: -rect.current.width / 2 });
 
     TweenMax.to(".Piano-Container", {
       opacity: 1,
@@ -89,7 +89,7 @@ function HomeCanvas() {
       noiseSize.current = updateAudioProps(waveform);
 
       const freqs = waveform.getValue();
-      console.log(freqs);
+      // console.log(freqs);
       // sphereMesh
       const sphereMesh = scene.current.getObjectByName("sphere");
       sphereMesh.material.uniforms.noiseSize.value = noiseSize.current;

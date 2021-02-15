@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import MagicLandShaderMaterial from "../shaders/MagicLandShaderMaterial";
+// import MagicLandShaderMaterial from "../shaders/MagicLandShaderMaterial";
+import EqualizerShaderMaterial from "../shaders/EqualizerShaderMaterial";
 
 function createGeometry({ rect, rows, columns }) {
-  return new THREE.PlaneBufferGeometry(rect.width, rect.width, rows, columns);
+  return new THREE.PlaneBufferGeometry(rect.width, rect.height, rows, columns);
 }
 
 // function viewSize({rect}) {
@@ -16,14 +17,14 @@ function createGeometry({ rect, rows, columns }) {
 //   return { width, height, vFov };
 // }
 
-function addLandMesh({ scene, rect, rows, columns }) {
+function addEqualizer({ scene, rect, rows, columns }) {
   const geometry = createGeometry({ rect, rows, columns });
 
   // const material = new THREE.MeshBasicMaterial({});
   const material = new THREE.ShaderMaterial({
-    uniforms: MagicLandShaderMaterial.uniforms,
-    vertexShader: MagicLandShaderMaterial.vertexShader,
-    fragmentShader: MagicLandShaderMaterial.fragmentShader,
+    uniforms: EqualizerShaderMaterial.uniforms,
+    vertexShader: EqualizerShaderMaterial.vertexShader,
+    fragmentShader: EqualizerShaderMaterial.fragmentShader,
     depthTest: true,
     side: THREE.DoubleSide,
     blending: THREE.AdditiveBlending,
@@ -33,16 +34,16 @@ function addLandMesh({ scene, rect, rows, columns }) {
 
   const mesh = new THREE.Mesh(geometry, material);
 
-  mesh.name = "plane";
+  mesh.name = "eq";
   // mesh.rotation.x = -Math.PI / 3;
-  mesh.rotation.z = Math.PI / 2;
+  // mesh.rotation.z = Math.PI / 2;
   // mesh.position.y = -300;
-  mesh.position.z = -1000;
+  mesh.position.z = -100;
 
   mesh.updateMatrixWorld();
 
   scene.add(mesh);
 }
 
-export default addLandMesh;
+export default addEqualizer;
 export { createGeometry };

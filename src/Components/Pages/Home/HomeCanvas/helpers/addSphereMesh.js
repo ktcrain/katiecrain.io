@@ -16,7 +16,7 @@ function addSphereMesh({ scene, rect }) {
     blending: THREE.AdditiveBlending,
     depthTest: true,
     transparent: true,
-    wireframe: false,
+    wireframe: true,
   });
 
   const mesh = new THREE.Mesh(geometry, material);

@@ -88,13 +88,16 @@ body {
   border: 1px solid #fff;
   border-radius: 50%;
   transition: all 500 ease-in-out;
-  background: #000;
+  background: transparent;
   &:hover {
     background: #ff00ff;
     color: #000;
   }
 }
 
-select,textarea,input,button {
+select,
+textarea,
+input,
+button {
   font-size: 16px;
 }
