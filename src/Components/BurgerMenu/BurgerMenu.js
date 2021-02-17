@@ -40,14 +40,14 @@ function BurgerMenu() {
       >
         About
       </Link>
-      {/* <Link
+      <Link
         className="menu-item"
         onClick={() => closeMenu()}
-        id="Nav-Projects"
-        to="/projects"
+        id="Nav-Nyan"
+        to="/nyan"
       >
-        Projects
-      </Link> */}
+        NYAN
+      </Link>
       <Link
         className="menu-item"
         onClick={() => closeMenu()}
