@@ -12,6 +12,7 @@ import Projects from "../Pages/Projects";
 import Contact from "../Pages/Contact";
 import Magic from "../Pages/Magic";
 import Visual2 from "../Pages/Visual2";
+import Waves from "../Pages/Waves";
 import logoSvg from "@assets/images/kt-logo-white.svg";
 import "./App.scss";
 
@@ -49,6 +50,9 @@ function App() {
               </Route>
               <Route path="/nyan">
                 <Visual2 />
+              </Route>
+              <Route path="/waves">
+                <Waves />
               </Route>
               <Route path="/">
                 <Home />
