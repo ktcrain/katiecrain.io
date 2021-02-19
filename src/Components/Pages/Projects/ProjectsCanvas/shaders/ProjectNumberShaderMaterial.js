@@ -270,7 +270,7 @@ const ProjectNumberShaderMaterial = {
 
   fragmentShader: [
     "const vec3 black = vec3(0.0, 0.0, 0.0);",
-    "const vec3 grey = vec3(127.0, 127.0, 127.0);",
+    "const vec3 grey = vec3(0.2,0.2,0.2);",
     "const vec3 white = vec3(255.0, 255.0, 255.0);",
     "const vec3 red = vec3(0.894,0.012,0.012);",
     "const vec3 tomato = vec3(0.9294117647,0.1450980392, 0.2666666667);",
@@ -287,7 +287,7 @@ const ProjectNumberShaderMaterial = {
 
     "void main() {",
 
-    "vec3 color = tomato;",
+    "vec3 color = grey;",
 
     // "vec3 color = vec3(0.03 * vDisplace,vDisplace,vDisplace);",
 

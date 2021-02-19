@@ -27,7 +27,7 @@ function HomeCanvas() {
 
     TweenMax.to(".Piano-Container", {
       opacity: 1,
-      bottom: "20%",
+      bottom: "5%",
       duration: 1,
       delay: 1,
     }); //wait 2 seconds

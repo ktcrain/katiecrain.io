@@ -43,6 +43,14 @@ function BurgerMenu() {
       <Link
         className="menu-item"
         onClick={() => closeMenu()}
+        id="Nav-Art"
+        to="/art"
+      >
+        Art
+      </Link>
+      <Link
+        className="menu-item"
+        onClick={() => closeMenu()}
         id="Nav-Nyan"
         to="/nyan"
       >
@@ -56,14 +64,14 @@ function BurgerMenu() {
       >
         Magic
       </Link>
-      <Link
+      {/* <Link
         className="menu-item"
         onClick={() => closeMenu()}
         id="Nav-Contact"
         to="/contact"
       >
         Contact
-      </Link>
+      </Link> */}
     </Menu>
   );
 }

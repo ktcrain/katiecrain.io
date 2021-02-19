@@ -1,34 +1,50 @@
 export default [
   {
-    number: "02",
-    title: "Mount Hood",
+    number: "01",
+    title: "Love #1",
     img:
-      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613012258/oregon_oorx2r.jpg",
-    description:
-      "Make meme, make cute face love you, then bite you leave dead animals as gifts.",
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613751046/love1_mtdzzw.jpg",
+  },
+  {
+    number: "02",
+    title: "Soul",
+    img:
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613750735/soul_mnnw8w.jpg",
   },
   {
     number: "03",
-    title: "Over Nevada",
+    title: "Butz",
     img:
-      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613012049/mountains_aedwjd.jpg",
-    description:
-      "Make meme, make cute face love you, then bite you leave dead animals as gifts.",
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613750955/butz_aofgvt.jpg",
   },
   {
-    number: "00",
-    title: "Shading",
+    number: "04",
+    title: "Love #2",
     img:
-      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613012667/white_zxza0u.png",
-    description:
-      "Make meme, make cute face love you, then bite you leave dead animals as gifts.",
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613751114/love2_u7pk3z.jpg",
   },
   {
-    number: "01",
-    title: "Simon",
+    number: "05",
+    title: "TrumpMore",
     img:
-      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1612983663/project-simon_uisxzi.png",
-    description:
-      "Make meme, make cute face love you, then bite you leave dead animals as gifts.",
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613750839/trumpmore_esxudw.jpg",
+  },
+  {
+    number: "06",
+    title: "LGBT #1",
+    img:
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613750339/lgbt1_mw4ara.jpg",
+  },
+  {
+    number: "07",
+    title: "Happy",
+    img:
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613750234/happy_btlpzw.jpg",
+  },
+  {
+    number: "08",
+    title: "Ruth",
+    img:
+      "https://res.cloudinary.com/dptp8ydoe/image/upload/v1613750077/ruth_x8fsvk.jpg",
   },
 ];

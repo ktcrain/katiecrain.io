@@ -10,7 +10,7 @@ function Projects() {
   useEffect(() => {
     const flickity = new Flickity(flickityMount.current, {
       wrapAround: true,
-      friction: 0.75,
+      friction: 0.5,
       on: {
         ready: function () {
           console.log("Flickity is ready");
@@ -32,31 +32,30 @@ function Projects() {
       <ProjectsCanvas />
       <div className="Projects-Inner">
         <div className="Projects-Slider" ref={flickityMount}>
-          {data.map((obj, index) => (
-            <div
-              className="Projects-Slider-Slide flickity-slide"
-              key={`Projects-Slider-Slide-${index}`}
-            >
-              <div className="Projects-Slider-Slide-Container">
-                <div className="image">
-                  <img className="cell__img" src={obj.img} alt={obj.title} />
-                </div>
-                <div className="content">
-                  <h3 className="title">
-                    <span className="cell__title">{obj.title}</span>
-                  </h3>
-                  <div className="description">
-                    <p>{obj.description}</p>
+          {data.map((obj, index) => {
+            return (
+              <div
+                className="Projects-Slider-Slide flickity-slide"
+                key={`Projects-Slider-Slide-${index}`}
+              >
+                <div className="Projects-Slider-Slide-Container">
+                  <div className="image">
+                    <img className="cell__img" src={obj.img} alt={obj.title} />
                   </div>
-                  <h4 className="number">
-                    <span className="cell__number" data-img-src={obj.img}>
-                      {obj.number}
-                    </span>
-                  </h4>
+                  <div className="content">
+                    <h3 className="title">
+                      <span className="cell__title">{obj.title}</span>
+                    </h3>
+                    <h4 className="number">
+                      <span className="cell__number" data-img-src={obj.img}>
+                        {obj.number}
+                      </span>
+                    </h4>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

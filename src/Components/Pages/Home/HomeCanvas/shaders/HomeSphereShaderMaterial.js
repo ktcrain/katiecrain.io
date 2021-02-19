@@ -150,10 +150,10 @@ const HomeSphereShaderMaterial = {
     "uvf.y = freqs[int(ceil(vUv.y*32.))];",
 
     "vNoiseDisp = snoise(vUv*noiseSize*10.);",
-    "p = position + normal * vNoiseDisp *depth * 2.;",
+    "p = position + normal * vNoiseDisp *depth * 1.;",
     // "p = position;",
 
-    "p = p * abs(sin(vUv.y + 20.*sin(vUv.x + uTime*0.001)));",
+    "p = p * abs(sin(vUv.x*vNoiseDisp + 20.*sin(vUv.y + uTime*0.001)));",
 
     "gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
     "}",
@@ -181,26 +181,6 @@ const HomeSphereShaderMaterial = {
     "varying vec2 uvf;",
     "varying float vNoiseDisp;",
 
-    "float lineWidth = 1.0;",
-
-    "vec3 plotSinWave(vec2 currentUv, float freq, float amp, vec3 color, vec3 bgc) {",
-    "float dx = lineWidth / uRes.x;",
-    "float dy = lineWidth / uRes.y;",
-    "float sy = sin(currentUv.x * freq + uTime*10.) * amp;",
-    "float dsy = cos(currentUv.x * freq + uTime) * amp * freq;",
-    "float alpha = smoothstep(0.0, dy, (abs(currentUv.y - sy))/sqrt(1.0+dsy*dsy));",
-    "return mix(color, bgc, alpha);",
-    "}",
-
-    "float genRange(float s, float e, float d) {",
-    "float c = mod(uTime * 0.003, d);",
-    "float halfTime = d / 2.0;",
-    "if(c - halfTime <= 0.0)",
-    "return s * (1.0 - c / halfTime) + e * (c / halfTime);",
-    "else",
-    "return s + abs(e - s) - (c - halfTime) / halfTime * abs(e - s);",
-    "}",
-
     "void main() {",
 
     "vec3 black = vec3(0);",
@@ -217,7 +197,7 @@ const HomeSphereShaderMaterial = {
     "float f = vNoiseDisp;",
 
     "vec2 pos = PI *(vUv*2.-1.);",
-    "vec4 color =vec4(0.2, 0.6, vNoiseDisp, 1.0)* abs(sin(20.*pos.y + 20.*sin(pos.x + uTime*0.001)));",
+    "vec4 color =vec4(0.2, 0.6, vNoiseDisp, 1.0)* abs(sin(20.*pos.x + 20.*sin(pos.y + uTime*0.001)));",
 
     "gl_FragColor = color;",
     // "gl_FragColor = vec4(c, 1.);",
