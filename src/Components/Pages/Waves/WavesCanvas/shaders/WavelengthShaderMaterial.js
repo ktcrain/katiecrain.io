@@ -106,7 +106,7 @@ const WavelengthShaderMaterial = {
   fragmentShader: [
     "#define PI 3.1415926538",
 
-    "const float lineWidth = 10.0;",
+    "const float lineWidth = 20.0;",
 
     "vec3 hsv2rgb(vec3 c){",
     "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);",
@@ -134,7 +134,7 @@ const WavelengthShaderMaterial = {
     "vec3 plotSinWave(vec2 currentUv, float freq, float amp, vec3 color, vec3 bgc) {",
     "float dx = lineWidth / uRes.x;",
     "float dy = lineWidth / uRes.y;",
-    "float sy = sin(currentUv.x * freq + uTime) * amp;",
+    "float sy = sin(currentUv.x * freq + uTime*10.) * amp;",
     "float dsy = cos(currentUv.x * freq + uTime) * amp * freq;",
     "float alpha = smoothstep(0.0, dy, (abs(currentUv.y - sy))/sqrt(1.0+dsy*dsy));",
     "return mix(color, bgc, alpha);",
@@ -164,8 +164,8 @@ const WavelengthShaderMaterial = {
 
     "for(int t=0; t<8; t++) {",
     "float f = freqs[t];",
-    "f = f/sqrt(f);",
-    "c += plotSinWave(st, 1., f*2., hsv2rgb(vec3(f*1000.,1.0,1.0)), vec3(0.0));",
+    "f = sqrt(f);",
+    "c += plotSinWave(st, 1.0+f*20., 0.1+f*.5+genRange(0.001,0.1,0.1), hsv2rgb(vec3(f*1000.,1.0,1.0)), vec3(0.0));",
     "}",
 
     "gl_FragColor = vec4(c, 1.0);",

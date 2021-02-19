@@ -23,7 +23,7 @@ function HomeCanvas() {
 
   const doSomething = () => {
     const sphereMesh = scene.current.getObjectByName("sphere");
-    TweenMax.to(sphereMesh.position, 3, { z: -rect.current.width / 2 });
+    // TweenMax.to(sphereMesh.position, 3, { z: -rect.current.width / 3 });
 
     TweenMax.to(".Piano-Container", {
       opacity: 1,

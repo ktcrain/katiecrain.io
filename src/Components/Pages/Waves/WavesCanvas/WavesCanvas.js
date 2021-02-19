@@ -110,7 +110,7 @@ function WavesCanvas() {
     },
   ];
 
-  const [song, setSong] = useState(songs[5]);
+  const [song, setSong] = useState(songs[0]);
 
   const windowSize = useWindowSize();
   useEffect(() => {

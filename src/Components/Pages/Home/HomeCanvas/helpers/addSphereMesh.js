@@ -3,6 +3,7 @@ import HomeSphereShaderMaterial from "../shaders/HomeSphereShaderMaterial";
 
 function createGeometry({ rect }) {
   return new THREE.SphereGeometry(rect.width, 32, 32);
+  // return new THREE.PlaneGeometry(rect.width, rect.width, 100, 100);
 }
 
 function addSphereMesh({ scene, rect }) {
@@ -16,13 +17,13 @@ function addSphereMesh({ scene, rect }) {
     blending: THREE.AdditiveBlending,
     depthTest: true,
     transparent: true,
-    wireframe: true,
+    wireframe: false,
   });
 
   const mesh = new THREE.Mesh(geometry, material);
 
   mesh.name = "sphere";
-  mesh.position.z = -2000;
+  mesh.position.z = -1000;
   scene.add(mesh);
 }
 

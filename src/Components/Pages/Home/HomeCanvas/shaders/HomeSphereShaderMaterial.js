@@ -132,6 +132,7 @@ const HomeSphereShaderMaterial = {
 
     "uniform float uTime;",
     "varying vec2 vUv;",
+    "uniform vec2 uRes;",
     "varying float vNoiseDisp;",
     "uniform float noiseSize;",
     "uniform float depth;",
@@ -148,17 +149,11 @@ const HomeSphereShaderMaterial = {
     "uvf.x = freqs[int(ceil(vUv.x*32.))];",
     "uvf.y = freqs[int(ceil(vUv.y*32.))];",
 
-    // // // Find distance from center vector
-    "if(spiral) {",
-    "float toCenter = distance(vUv,vec2(0.5));",
-    "vUv = vec2(0.5) * toCenter * vUv;",
-    "}",
-
     "vNoiseDisp = snoise(vUv*noiseSize*10.);",
     "p = position + normal * vNoiseDisp *depth * 2.;",
+    // "p = position;",
 
-    // "p.x = p.x * log(uvf.y)/2. * 0.1;",
-    // "p.y = p.y * uvf.x * 10.;",
+    "p = p * abs(sin(vUv.y + 20.*sin(vUv.x + uTime*0.001)));",
 
     "gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
     "}",
@@ -177,7 +172,7 @@ const HomeSphereShaderMaterial = {
     "uniform float noiseSize;",
     "uniform float depth;",
     "uniform float blur;",
-    // "uniform vec2 uRes;",
+    "uniform vec2 uRes;",
     "uniform float lineTime;",
     "uniform float lineCount;",
     "uniform float lineSize;",
@@ -186,46 +181,46 @@ const HomeSphereShaderMaterial = {
     "varying vec2 uvf;",
     "varying float vNoiseDisp;",
 
+    "float lineWidth = 1.0;",
+
+    "vec3 plotSinWave(vec2 currentUv, float freq, float amp, vec3 color, vec3 bgc) {",
+    "float dx = lineWidth / uRes.x;",
+    "float dy = lineWidth / uRes.y;",
+    "float sy = sin(currentUv.x * freq + uTime*10.) * amp;",
+    "float dsy = cos(currentUv.x * freq + uTime) * amp * freq;",
+    "float alpha = smoothstep(0.0, dy, (abs(currentUv.y - sy))/sqrt(1.0+dsy*dsy));",
+    "return mix(color, bgc, alpha);",
+    "}",
+
+    "float genRange(float s, float e, float d) {",
+    "float c = mod(uTime * 0.003, d);",
+    "float halfTime = d / 2.0;",
+    "if(c - halfTime <= 0.0)",
+    "return s * (1.0 - c / halfTime) + e * (c / halfTime);",
+    "else",
+    "return s + abs(e - s) - (c - halfTime) / halfTime * abs(e - s);",
+    "}",
+
     "void main() {",
 
     "vec3 black = vec3(0);",
-    "vec3 c = hsv2rgb(vec3(vUv.x + uTime, 0.8, 0.7));",
+    // "vec3 c = hsv2rgb(vec3(vUv.x + uTime, 0.8, 0.7));",
     // "vec3 c = vec3(1);",
+    "vec3 c = black;",
     "vec2 st = vUv;",
-    "st.x += uTime*0.0005;",
-    "st.y += uTime*0.0005;",
 
-    // // find nearest dot posn
-    // "vec2 nearest = 2.0*fract(lineCount * st) - 1.0;",
-    // "float dist = length(nearest);",
-    // "vec3 dotcol = mix(c, black, smoothstep(dotSize, dotSize + dotSize*blur, dist));",
+    // "st = st/10.;",
 
-    // // "st.x = 1. / length(st);",
+    // "st.x += uTime*0.0005;",
+    // "st.y += uTime*0.0005;",
 
-    // //draw lines
+    "float f = vNoiseDisp;",
 
-    // "float x = fract(st.y * lineCount) - .5 + lineSize/2.;",
-    // "float fx = smoothstep(-lineSize*blur,0.0, x) - smoothstep(lineSize, lineSize + lineSize*blur, x);",
+    "vec2 pos = PI *(vUv*2.-1.);",
+    "vec4 color =vec4(0.2, 0.6, vNoiseDisp, 1.0)* abs(sin(20.*pos.y + 20.*sin(pos.x + uTime*0.001)));",
 
-    // "float y = fract(st.x * lineCount) - 0.5 + lineSize/2.;",
-    // "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
-    // // "float fy = smoothstep(-lineSize*blur,0.0, y) - smoothstep(lineSize, lineSize + lineSize*blur, y);",
-
-    // "vec3 linecol = mix(black, c, fx + fy);",
-
-    // //make lines darker based on z pos. Lines further back are darker
-    // // "c = mix(linecol, black, uvf);",
-    // "c = mix(linecol + dotcol, black, -vNoiseDisp);",
-
-    // "c = mix(c,black,uvf.x);",
-
-    // // make a tube
-    // "float f = ;",
-
-    // // add the angle
-    // "f += atan(vUv.x, vUv.y) / acos(0.);",
-
-    "gl_FragColor = vec4(c, 1.);",
+    "gl_FragColor = color;",
+    // "gl_FragColor = vec4(c, 1.);",
     "}",
   ].join("\n"),
 };
