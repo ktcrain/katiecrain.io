@@ -2,7 +2,7 @@ import * as THREE from "three";
 import WavelengthShaderMaterial from "../shaders/WavelengthShaderMaterial";
 
 function createGeometry() {
-  return new THREE.PlaneBufferGeometry(4000, 2000, 1, 1);
+  return new THREE.PlaneBufferGeometry(8000, 4000, 1, 1);
 }
 
 function addWavelengthMesh({ scene, rect, rows, columns }) {

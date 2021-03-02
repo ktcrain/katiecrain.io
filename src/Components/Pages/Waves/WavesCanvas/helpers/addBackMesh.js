@@ -1,21 +1,19 @@
 import * as THREE from "three";
-import HomeSphereShaderMaterial from "../shaders/HomeSphereShaderMaterial";
+import BackgroundShaderMaterial from "../shaders/BackgroundShaderMaterial";
 
 function createGeometry({ rect }) {
-  return new THREE.SphereGeometry(500, 100, 100);
+  return new THREE.PlaneGeometry(5000, 5000, 100, 100);
 }
 
 function addSphereMesh({ scene, rect }) {
   const geometry = createGeometry({ rect });
 
   const material = new THREE.ShaderMaterial({
-    uniforms: HomeSphereShaderMaterial.uniforms,
-    vertexShader: HomeSphereShaderMaterial.vertexShader,
-    fragmentShader: HomeSphereShaderMaterial.fragmentShader,
+    uniforms: BackgroundShaderMaterial.uniforms,
+    vertexShader: BackgroundShaderMaterial.vertexShader,
+    fragmentShader: BackgroundShaderMaterial.fragmentShader,
     depthTest: true,
     transparent: true,
-    castShadow: true,
-    receiveShadow: true,
     lights: true,
     // wireframe: true,
   });
@@ -24,17 +22,18 @@ function addSphereMesh({ scene, rect }) {
 
   // pallete
   new THREE.TextureLoader().load(
-    "https://res.cloudinary.com/dptp8ydoe/image/upload/v1614656273/lightning-black_lcdi5z.png",
+    "https://res.cloudinary.com/dptp8ydoe/image/upload/a_90/v1614659029/red-background-black-clouds_jgwa7c.png",
     function (texture) {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(32, 32);
+      texture.repeat.set(10, 10);
       mesh.material.uniforms.pallete.value = texture;
       mesh.material.needsUpdate = true;
     }
   );
 
-  mesh.name = "sphere";
+  mesh.name = "back";
+  mesh.rotation.z = Math.PI / 2;
   mesh.position.z = -1000;
   scene.add(mesh);
 }

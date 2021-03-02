@@ -64,14 +64,14 @@ function BurgerMenu() {
       >
         Magic
       </Link>
-      {/* <Link
+      <Link
         className="menu-item"
         onClick={() => closeMenu()}
-        id="Nav-Contact"
-        to="/contact"
+        id="Nav-Waves"
+        to="/waves"
       >
-        Contact
-      </Link> */}
+        Express
+      </Link>
     </Menu>
   );
 }

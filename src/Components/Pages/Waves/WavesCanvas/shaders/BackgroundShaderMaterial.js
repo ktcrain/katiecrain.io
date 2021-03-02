@@ -21,9 +21,6 @@ const customUniforms = {
     type: "fv",
     value: new Array(32).fill(1.0),
   },
-  scaleX: { type: "f", value: 1.0 },
-  scaleY: { type: "f", value: 1.0 },
-  scaleZ: { type: "f", value: 1.0 },
 };
 
 const uniforms = THREE.UniformsUtils.merge([
@@ -36,7 +33,7 @@ const uniforms = THREE.UniformsUtils.merge([
 
 // console.log(uniforms);
 
-const HomeSphereShaderMaterial = {
+const BackgroundShaderMaterial = {
   uniforms: uniforms,
   vertexShader: [
     "#define PI 3.1415926538",
@@ -48,15 +45,10 @@ const HomeSphereShaderMaterial = {
     "uniform vec3 uMouse;",
     "uniform float freqs[32];",
 
-    "uniform float scaleX;",
-    "uniform float scaleY;",
-    "uniform float scaleZ;",
-
     "varying vec2 vUv;",
     "varying vec3 p;",
     "varying vec3 vNormal;",
     "varying float vNoiseDisp;",
-    "varying mat4 vPosition;",
 
     "float random (in vec2 st) {",
     "return fract(sin(dot(st.xy, vec2(12.9898,78.233)))*43758.5453123);",
@@ -325,28 +317,22 @@ const HomeSphereShaderMaterial = {
 
     // "float f = vNoiseDisp*100.;",
 
-    "p.z += dist * sin((15.-vUv.y+uTime*0.1) * uTime*0.05 + uTime*0.1);",
+    // "p.z += dist * sin((15.-vUv.y+uTime*0.1) * uTime*0.05 + uTime*0.1);",
 
     "int barOff = bar + 16;",
 
-    "p.x += f * 1000. * vNoiseDisp;",
+    // "p.x += f * 1000. * vNoiseDisp;",
 
-    "p += normal * vNoiseDisp*20.;",
+    // "p += normal * vNoiseDisp*20.;",
 
-    // Scale
-    "mat4 sPos = mat4(vec4(scaleX,0.0,0.0,0.0),",
-    "vec4(0.0,scaleY,0.0,0.0),",
-    "vec4(0.0,0.0,scaleZ,0.0),",
-    "vec4(0.0,0.0,0.0,1.0));",
-
-    "vPosition = sPos;",
-
-    "gl_Position = projectionMatrix * modelViewMatrix * vPosition * vec4( p, 1.0 );",
+    "gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
     "}",
   ].join("\n"),
 
   fragmentShader: [
     " #define PI 3.14159265359",
+    "#define TAU 6.283185307179586",
+
     "const vec3 black = vec3(0.0, 0.0, 0.0);",
     "const vec3 grey = vec3(127.0, 127.0, 127.0);",
     "const vec3 white = vec3(255.0, 255.0, 255.0);",
@@ -371,44 +357,95 @@ const HomeSphereShaderMaterial = {
     "varying vec3 vNormal;",
     "uniform float freqs[32];",
 
-    // HSV (hue, saturation, value)
-    "vec3 hsv2rgb(vec3 c){",
-    "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);",
-    "vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);",
-    "return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);",
+    "vec2 rotate2D(vec2 _st, float _angle){",
+    "_st -= 0.5;",
+    "_st =  mat2(cos(_angle),-sin(_angle),sin(_angle),cos(_angle)) * _st;",
+    "_st += 0.5;",
+    "return _st;",
+    "}",
+
+    "vec3 spiral(vec2 p, float uTime, sampler2D pallete, float vNoiseDisp) {",
+    "float angle = atan(p.y, p.x);",
+    "float turn = (angle + PI) / TAU;",
+    "float radius = 0.1 * sqrt(p.x*p.x + p.y*p.y);",
+
+    "float rotation = 0.04 * TAU * uTime;",
+    // "float rotation = 0.04 * TAU;",
+    "float turn_1 = turn + rotation;",
+
+    "float n_sub = 2.0;",
+
+    "float turn_sub = mod(float(n_sub) * turn_1, float(n_sub));",
+
+    "float k_sine = 0.1 * sin(3.0 * uTime);",
+    // "float k_sine = 0.1 * sin(3.0);",
+
+    "float sine = k_sine * sin(50.0 * (pow(radius, 0.1) - 0.4 * uTime));",
+
+    "float turn_sine = turn_sub + sine;",
+
+    "int n_colors = 7;",
+    "int i_turn = int(mod(float(n_colors) * turn_sine, float(n_colors)));",
+
+    "int i_radius = int(1.5/pow(radius*0.5, 0.6) + 5.0 * uTime);",
+
+    "int i_color = int(mod(float(i_turn + i_radius), float(n_colors)));",
+
+    "vec2 stripPos = 4. * p;",
+    "stripPos = rotate2D(stripPos, -turn_sine);",
+    "vec4 stripColor = texture2D( pallete, stripPos);",
+
+    "vec3 color;",
+    "if(i_color == 0) {",
+    "color = stripColor.rgb;",
+    "} else if(i_color == 1) {",
+    "color = orange;",
+    "} else if(i_color == 2) {",
+    "color = yellow;",
+    "} else if(i_color == 3) {",
+    "color = green;",
+    "} else if(i_color == 4) {",
+    "color = blue;",
+    "} else if(i_color == 5) {",
+    "color = purple;",
+    "} else if(i_color == 6) {",
+    "color = black;",
+    "}",
+
+    "color *= pow(radius, 0.5)*1.0;",
+    "return color;",
     "}",
 
     "void main() {",
 
-    // Find center
-    "vec2 toCenter = vec2(0.5)-vUv;",
-    "float angle = atan(toCenter.y,toCenter.x);",
-    "float radius = length(toCenter)*2.0;",
-
     "vec2 st = vUv;",
     "st.y *= 32.;",
 
-    "vec3 light = vec3( 0.0, 2.0, 0.5 );",
+    "vec3 light = vec3( 0.5, 0.5, 0.5 );",
     "light = normalize( light );",
 
-    "float dProd = dot( vNormal, light ) * 0.5 + 0.5;",
+    "float dProd = dot( vNormal, light ) * 1.5 + 0.5;",
 
-    "float hueFn = angle/(2.*PI)+0.5 * sin(uTime*0.001);",
-    "float satFn = radius;",
-    "float valFn = 0.5;",
-    "vec3 hsv = hsv2rgb(vec3(hueFn, satFn, valFn));",
-    "vec3 c = black;",
+    "float repeat = 10.;",
+    "vec2 stripPos = vUv;",
+    // "stripPos += uTime*0.1;",
+    "vec2 sp = (p.xy) / uRes.xx;",
+    // "float angle = atan(sp.y, sp.x);",
+    // "float turn = (angle + PI) / TAU;",
+    // "float radius = 0.1 * sqrt(sp.x*sp.x + sp.y*sp.y);",
+    // "float rotation = 0.04 * TAU * uTime*2.0;",
+    // "stripPos = rotate2D(stripPos, -rotation);",
+    "stripPos *= repeat;",
+    // "vec4 stripColor = texture2D( pallete, stripPos);",
+    // "stripColor *= pow(2.0 - vNoiseDisp, 1.2);",
+
+    "vec3 c = spiral(sp, uTime, pallete, vNoiseDisp);",
 
     "int bar = int(floor(st.y * 32.));",
     "float f = freqs[bar];",
     // "f = 100. * sqrt(f);",
 
-    "vec2 stripPos = vUv * 32.;",
-    "stripPos.x += uTime;",
-    "vec4 stripColor = texture2D( pallete, stripPos);",
-    // "stripColor *= pow(2.0 - vNoiseDisp, 1.2);",
-
-    "c = mix(stripColor.rgb,c,-vNoiseDisp);",
+    // "c = mix(c,stripColor.rgb,0.1);",
 
     // "vec2 nearest = vec2(st.x, bar);",
     // "float dist = length(nearest);",
@@ -431,4 +468,4 @@ const HomeSphereShaderMaterial = {
   ].join("\n"),
 };
 
-export default HomeSphereShaderMaterial;
+export default BackgroundShaderMaterial;

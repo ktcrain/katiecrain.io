@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as Tone from "tone";
-// import { TweenMax } from "gsap";
+import { TweenMax } from "gsap";
 import "./WavesCanvas.scss";
 import { updateAudioProps, sumFrequencyData } from "@components/Piano";
 import useWindowSize from "@shared/hooks/useWindowSize";
 import addCamera from "./helpers/addCamera";
 import addLights from "./helpers/addLights";
-// import addCat from "./helpers/addCat";
-// import addStars from "./helpers/addStars";
+import addBackMesh from "./helpers/addBackMesh";
+import addSphereMesh from "./helpers/addSphereMesh";
 import addWavelengthMesh from "./helpers/addWavelengthMesh";
 // import addLandMesh, {
 //   createGeometry as createLandGeometry,
@@ -19,6 +19,7 @@ import addWavelengthMesh from "./helpers/addWavelengthMesh";
 // import MagicLandShaderMaterial from "./shaders/MagicLandShaderMaterial";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import KTUtil from "../../../../utils/KTUtil";
 // import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 // import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass.js";
 // import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader.js";
@@ -110,7 +111,7 @@ function WavesCanvas() {
     },
   ];
 
-  const [song, setSong] = useState(songs[0]);
+  const [song, setSong] = useState(songs[1]);
 
   const windowSize = useWindowSize();
   useEffect(() => {
@@ -190,15 +191,21 @@ function WavesCanvas() {
       window.scene = scene.current;
       camera.current = addCamera({ rect: rect.current });
       addLights({ scene: scene.current });
-      // addLandMesh({ rows, columns, scene: scene.current, rect: rect.current });
+      addBackMesh({ rows, columns, scene: scene.current, rect: rect.current });
       // addEqualizer({ rows, columns, scene: scene.current, rect: rect.current });
-
-      addWavelengthMesh({
+      addSphereMesh({
         rows,
         columns,
         scene: scene.current,
         rect: rect.current,
       });
+
+      // addWavelengthMesh({
+      //   rows,
+      //   columns,
+      //   scene: scene.current,
+      //   rect: rect.current,
+      // });
 
       composer.current = new EffectComposer(renderer.current);
 
@@ -224,10 +231,35 @@ function WavesCanvas() {
       let heights = fft.current.getValue();
       let waveformH = waveform.current.getValue();
 
-      const wave = scene.current.getObjectByName("wave");
-      wave.material.uniforms.freqs.value = heights;
-      wave.material.uniforms.noiseSize.value = noiseSize.current;
-      wave.material.uniforms.uTime.value = uTime.current;
+      const sphere = scene.current.getObjectByName("sphere");
+      sphere.material.uniforms.freqs.value = heights;
+      sphere.material.uniforms.noiseSize.value = noiseSize.current;
+      sphere.material.uniforms.uTime.value = uTime.current;
+
+      // const scaleFactor = 0.5 * Math.abs(Math.sqrt(noiseSize.current) * 100);
+      let scaleFactor = 0.8 * Math.exp(noiseSize.current * 100);
+
+      if (onBeat.current === true) {
+        uTime.current += 0.03;
+        scaleFactor += 0.05;
+        onBeat.current = false;
+        TweenMax.to(sphere.rotation, 0.1, {
+          z: sphere.rotation.z + (noiseSize.current * 1000) / 2,
+        });
+      }
+
+      sphere.material.uniforms.scaleX.value = scaleFactor;
+      sphere.material.uniforms.scaleY.value = scaleFactor;
+      sphere.material.uniforms.scaleZ.value = scaleFactor;
+
+      const back = scene.current.getObjectByName("back");
+      back.material.uniforms.freqs.value = heights;
+      back.material.uniforms.noiseSize.value = noiseSize.current;
+      back.material.uniforms.uTime.value = uTime.current;
+      back.material.uniforms.uRes.value = {
+        x: rect.current.width,
+        y: rect.current.height,
+      };
 
       composer.current.render();
     };

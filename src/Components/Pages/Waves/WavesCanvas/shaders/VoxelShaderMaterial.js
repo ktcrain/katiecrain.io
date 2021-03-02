@@ -32,7 +32,7 @@ const uniforms = THREE.UniformsUtils.merge([
 
 // console.log(uniforms);
 
-const WavelengthShaderMaterial = {
+const VoxelShaderMaterial = {
   uniforms: uniforms,
   vertexShader: [
     // Start Ashima 2D Simplex Noise
@@ -99,24 +99,13 @@ const WavelengthShaderMaterial = {
     "vec3 p = position;",
 
     "vNoiseDisp = snoise(vUv*noiseSize*1. + uTime * 0.1);",
+
     "gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );",
     "}",
   ].join("\n"),
 
   fragmentShader: [
     "#define PI 3.1415926538",
-
-    "vec3 hsv2rgb(vec3 c){",
-    "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);",
-    "vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);",
-    "return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);",
-    "}",
-
-    // // from here: www.shadertoy.com/view/XtjBzG
-    "vec3 heatColorMap(float t) {",
-    "t *= 4.;",
-    "return clamp(vec3(min(t-1.5, 4.5-t), min(t-0.5, 3.5-t), min(t+0.5, 2.5-t)), 0., 1.);",
-    "}",
 
     "uniform float uTime;",
     "uniform float noiseSize;",
@@ -129,46 +118,76 @@ const WavelengthShaderMaterial = {
     "varying vec2 uvf;",
     "varying float vNoiseDisp;",
 
-    "vec3 plotSinWave(vec2 currentUv, float freq, float amp, float lineWidth, vec3 color, vec3 bgc) {",
-    "float dx = lineWidth / uRes.x;",
-    "float dy = lineWidth / uRes.y;",
-    "float sy = sin(currentUv.x * freq + uTime*10.) * amp;",
-    "float dsy = cos(currentUv.x * freq + uTime) * amp * freq;",
-    "float alpha = smoothstep(0.0, dy, (abs(currentUv.y - sy))/sqrt(1.0+dsy*dsy));",
-    "return mix(color, bgc, alpha);",
+    "mat2 r2d(float a) {",
+    "float c = cos(a), s = sin(a);",
+    "return mat2(c, s, -s, c);",
     "}",
 
-    "float genRange(float s, float e, float d) {",
-    "float c = mod(uTime * 0.3, d);",
-    "float halfTime = d / 2.0;",
-    "if(c - halfTime <= 0.0)",
-    "return s * (1.0 - c / halfTime) + e * (c / halfTime);",
-    "else",
-    "return s + abs(e - s) - (c - halfTime) / halfTime * abs(e - s);",
+    "vec2 path(float t) {",
+    "float a = sin(t*.2 + 1.5), b = sin(t*.2);",
+    "return vec2(2.*a, a*b);",
+    "}",
+
+    "float g = 0.;",
+    "float de(vec3 p) {",
+    "p.xy -= path(p.z);",
+    "float d = -length(p.xy) + 4.;",
+    "p.xy += vec2(cos(p.z + uTime)*sin(uTime), cos(p.z + uTime));",
+    "p.z -= 6. + uTime * 6.;",
+    "d = min(d, dot(p, normalize(sign(p))) - 1.);",
+    "g += .015 / (.01 + d * d);",
+    "return d;",
     "}",
 
     "void main() {",
+
+    "vec2 st = vUv - 0.5;",
+    // "vec2 uv = fragCoord / iResolution.xy - .5;",
+    // "uv.x *= iResolution.x / iResolution.y;",
 
     "vec3 black = vec3(0);",
     "vec3 pink = vec3(1,0,1);",
     "vec3 green = vec3(0,1,0);",
 
-    "vec3 c = black;",
+    "float dt = uTime * 6.;",
+    "vec3 ro = vec3(0, 0, -5. + dt);",
+    "vec3 ta = vec3(0, 0, dt);",
 
-    // "float f = freqs[bar];",
+    "ro.xy += path(ro.z);",
+    "ta.xy += path(ta.z);",
 
-    "vec2 st = vUv;",
-    "st.y = .5 - st.y;",
+    "vec3 fwd = normalize(ta - ro);",
+    "vec3 right = cross(fwd, vec3(0, 1, 0));",
+    "vec3 up = cross(right, fwd);",
+    "vec3 rd = normalize(fwd + st.x*right + st.y*up);",
 
-    "for(int t=0; t<32; t++) {",
-    "float f = freqs[t];",
-    "f = sqrt(f);",
-    "c += plotSinWave(st, 1.0+f*20., 0.1+vNoiseDisp*.5+genRange(0.01*f,0.1*f,0.6*f), max(2.0, f*500.), hsv2rgb(vec3(f*1000.,1.0,1.0)), vec3(0.0));",
+    "rd.xy *= r2d(sin(-ro.x / 3.14)*.3);",
+
+    "vec3 p = floor(ro) + .5;",
+    "vec3 mask;",
+    "vec3 drd = 1. / abs(rd);",
+    "rd = sign(rd);",
+    "vec3 side = drd * (rd * (p - ro) + .5);",
+
+    "float t = 0., ri = 0.;",
+    "for (float i = 0.; i < 1.; i += .01) {",
+    "ri = i;",
+    "if (de(p) < 0.) break;",
+    "mask = step(side, side.yzx) * step(side, side.zxy);",
+    "side += drd * mask;",
+    "p += rd * mask;",
     "}",
+    "t = length(p - ro);",
+
+    "vec3 c = vec3(1) * length(mask * vec3(1., .5, .75));",
+    "c = mix(vec3(.2, .2, .7), vec3(.2, .1, .2), c);",
+    "c += g * .4;",
+    "c.r += sin(uTime)*.2 + sin(p.z*.5 - uTime * 6.);",
+    "c = mix(c, vec3(.2, .1, .2), 1. - exp(-.001*t*t));",
 
     "gl_FragColor = vec4(c, 1.0);",
     "}",
   ].join("\n"),
 };
 
-export default WavelengthShaderMaterial;
+export default VoxelShaderMaterial;
